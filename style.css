@@ -1,0 +1,131 @@
+/* Pixtale 克隆样式 - 完全复刻 waterfall + card 细节 */
+* { scrollbar-width: thin; }
+html { scrollbar-gutter: stable; }
+
+/* masonry 抄袭 Pixtale: columnWidth 240 + gutter 4, 移动端 2列 */
+.masonry {
+  column-width: 240px;
+  column-gap: 4px;
+}
+@media (max-width: 768px) {
+  .masonry {
+    column-width: auto;
+    column-count: 2;
+  }
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 4px;
+  position: relative;
+  overflow: hidden;
+  background: hsl(240 4.8% 95.9%);
+  display: block;
+  cursor: pointer;
+}
+.dark .masonry-item { background: #1a1a1e; }
+
+/* photo-card 核心： group hover */
+.masonry-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 350ms ease;
+}
+.masonry-item:hover img {
+  transform: scale(1.05);
+}
+
+/* 渐变遮罩 完全照抄 PhotoCard */
+.masonry-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.05) 24%, rgba(0,0,0,0.10) 58%, rgba(0,0,0,0.50));
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.masonry-item:hover::after { opacity: 1; }
+
+/* 底部信息 - hover 才显示，像 Pixtale */
+.masonry-info {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 10px 10px 8px;
+  color: white;
+  pointer-events: none;
+}
+.masonry-info h3 {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 300ms;
+  margin-bottom: 2px;
+}
+.masonry-info .meta {
+  font-size: 11px;
+  color: rgba(255,255,255,.85);
+  opacity: 0;
+  transition: opacity 300ms;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.masonry-item:hover .masonry-info h3,
+.masonry-item:hover .masonry-info .meta { opacity: 1; }
+
+/* 移动端长按 hover 逻辑用 class */
+.masonry-item.show-hover::after { opacity: 1; }
+.masonry-item.show-hover .masonry-info h3,
+.masonry-item.show-hover .masonry-info .meta { opacity: 1; }
+.masonry-item.show-hover img { transform: scale(1.05); }
+
+/* viewer 缩略图 */
+#viewerThumbs {
+  scrollbar-width: none;
+}
+#viewerThumbs::-webkit-scrollbar { display: none; }
+.thumb {
+  flex: 0 0 75px;
+  height: 75px;
+  position: relative;
+  overflow: hidden;
+  opacity: .6;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: opacity .2s, border-color .2s;
+}
+@media (max-width: 768px) {
+  .thumb { flex-basis: 46px; height: 46px; }
+}
+.thumb.active {
+  opacity: 1;
+  border-color: white;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* 隐藏滚动条工具 */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* 欢迎弹窗动画 */
+.animate-in {
+  animation: modalIn .35s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.92) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+/* 弹窗文字中加粗红色 */
+#introContent b {
+  color: #ef4444;
+  font-size: 1.15em;
+  font-weight: 700;
+}
+

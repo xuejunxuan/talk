@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薛俊轩的个人语录</title>
+<link rel="icon" type="image/png" href="xuejunxuan-icon.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(240 5.9% 90%)",
+        background: "hsl(0 0% 100%)",
+        foreground: "hsl(240 10% 3.9%)",
+        muted: "hsl(240 4.8% 95.9%)",
+        "muted-foreground": "hsl(240 3.8% 46.1%)",
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#fafafa] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 antialiased">
+<!-- Header 抄袭 Pixtale 顶部 -->
+<header class="sticky top-0 z-30 backdrop-blur-xl bg-white/70 dark:bg-zinc-900/70 border-b border-zinc-200 dark:border-zinc-800">
+  <div class="max-w-[1600px] mx-auto px-3 md:px-6 h-[56px] flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="xuejunxuan-icon.png" alt="logo" class="size-8 rounded-lg object-cover">
+      <span class="font-semibold tracking-tight text-[15px]">大喜语录</span>
+      <span class="hidden md:inline text-xs text-zinc-500 ml-2">机制搬运所 - QQ群：479584931</span>
+    </div>
+    <div class="flex items-center gap-2 text-xs text-zinc-500">
+      <span id="photoCount">0 张照片</span>
+      <span class="size-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
+      <span class="hidden md:inline" id="photoSize">—</span>
+      <button id="regenBtn" title="重新扫描 images.json" class="ml-2 hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px]">重新加载</button>
+    </div>
+  </div>
+</header>
+
+<!-- Masonry Container 直接抄袭 Pixtale 的 photo-masonry 逻辑 -->
+<main class="max-w-[1600px] mx-auto px-[2px] md:px-4 py-[4px]">
+  <div id="masonry" class="masonry"></div>
+  <div id="empty" class="hidden py-24 text-center text-sm text-zinc-500">暂无图片，请将图片放入 images 文件夹并运行 node generate-manifest.js</div>
+  <div id="loader" class="py-10 flex justify-center"><div class="size-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900 dark:border-zinc-700 dark:border-t-white"></div></div>
+</main>
+
+<!-- Viewer 抄袭 Pixtale 的 photo-viewer (yet-another-react-lightbox) -->
+<div id="viewer" class="fixed inset-0 z-50 hidden">
+  <!-- 背景 -->
+  <div id="viewerBg" class="absolute inset-0 bg-black"></div>
+
+  <!-- 顶部工具栏 -->
+  <div id="viewerToolbar" class="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-3 md:p-4 pointer-events-none">
+    <button id="viewerClose" class="pointer-events-auto size-9 rounded-full bg-black/40 backdrop-blur text-white grid place-items-center hover:bg-black/60 transition">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <button id="viewerRotate" class="size-9 rounded-full bg-black/40 backdrop-blur text-white grid place-items-center hover:bg-black/60 transition" title="旋转">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M4.5 9a2.5 2.5 0 0 0 0 5H6"/><path d="M12 12l-2 3 2 3"/><path d="M20 12a8 8 0 1 1-8-8"/></svg>
+      </button>
+      <button id="viewerDownload" class="size-9 rounded-full bg-black/40 backdrop-blur text-white grid place-items-center hover:bg-black/60 transition" title="下载">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      </button>
+      <button id="viewerFullscreen" class="size-9 rounded-full bg-black/40 backdrop-blur text-white grid place-items-center hover:bg-black/60 transition" title="全屏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 主图区域 -->
+  <div id="viewerStage" class="absolute inset-0 flex items-center justify-center">
+    <img id="viewerImg" class="max-h-[100vh] max-w-[100vw] object-contain select-none transition-transform duration-200" draggable="false" alt="">
+    <div id="viewerPlaceholder" class="absolute inset-0 -z-10 opacity-30 blur-2xl scale-110 pointer-events-none"></div>
+  </div>
+
+  <!-- 左右切换 -->
+  <button id="viewerPrev" class="hidden md:grid absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 backdrop-blur text-white place-items-center hover:bg-black/60 transition z-20">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button id="viewerNext" class="hidden md:grid absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 backdrop-blur text-white place-items-center hover:bg-black/60 transition z-20">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+
+  <!-- 底部信息 + 缩略图 -->
+  <div id="viewerBottom" class="absolute bottom-0 inset-x-0 z-20">
+    <!-- 信息条 -->
+    <div class="mx-auto max-w-5xl px-4 pb-2">
+      <div class="bg-black/50 backdrop-blur rounded-xl px-4 py-3 text-white flex items-center justify-between gap-4">
+        <div class="min-w-0">
+          <div id="viewerName" class="text-sm font-medium truncate"></div>
+          <div id="viewerMeta" class="text-xs text-white/70"></div>
+        </div>
+        <div class="text-xs text-white/60 hidden md:block" id="viewerIndex"></div>
+      </div>
+    </div>
+    <!-- 缩略图条 抄袭 Pixtale thumbnails  -->
+    <div id="viewerThumbs" class="flex gap-0 overflow-x-auto scrollbar-none bg-black/80 backdrop-blur border-t border-white/10 p-0">
+      <!-- 动态插入 -->
+    </div>
+  </div>
+</div>
+
+<!-- 欢迎弹窗 -->
+<div id="introModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="introBackdrop"></div>
+  <div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-2xl w-full p-8 md:p-10 border border-zinc-200 dark:border-zinc-800 animate-in">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center size-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-600 dark:text-zinc-400">
+          <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/>
+        </svg>
+      </div>
+    </div>
+    <div id="introContent" class="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300 space-y-4 mb-8"></div>
+    <div class="flex justify-center">
+      <button id="introClose" class="px-8 py-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium text-sm hover:opacity-90 transition-opacity active:scale-95">
+        我来康康
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 弹窗文字渲染
+(function(){
+  const text = `现在向你们走来的是一位Warframe传奇人物，
+<b>大喜（薛俊轩）</b>
+一位自称脱离了低级趣味，却喜欢反复搬运英文DC频道内容，翻译翻译，就说是自己原创的"全领域大神"；
+
+一位自称天下无敌，却什么成绩也没打出过的<b>"世一九"</b>；
+一位自称工作高薪，却总是用<b>京东白条</b>账单来"装逼"的谜语人；
+一位<b>直接搬运</b>其他人的成果，用AI改一改就"豪"起来了的"提示词专家"；
+
+据说，我们的喜神 近期还想要用AI读open-wf仓库、尝试爬取数据，结果发现自己<b>完全开不起高级订阅</b>，就要直接开个收费群圈钱，说是"数据挖掘"。
+
+一位天天用AI装逼，GPT用多了、居然把自己都当成GPT了的<b>神人之中的神人</b>；
+
+到底哪一个才是真的你？`;
+  // 保留换行排版，用 <br> 替换换行
+  document.getElementById('introContent').innerHTML = text.replace(/\n/g, '<br>');
+})();
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>

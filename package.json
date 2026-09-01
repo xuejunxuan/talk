@@ -1,0 +1,10 @@
+{
+  "name": "gallery-project",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "node generate-manifest.js",
+    "watch": "node generate-manifest.js --watch",
+    "dev": "npm run watch"
+  }
+}
